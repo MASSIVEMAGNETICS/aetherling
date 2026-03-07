@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://aetherforge.io/schemas/aetherling/v1.json",
+  "title": "AetherlingConfig",
+  "description": "Schema for a complete Aetherling genetic configuration (DNA).",
+  "type": "object",
+  "required": ["id", "name", "cognitive_blocks", "constitution"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Globally unique soul-token / identity hash for this agent.",
+      "minLength": 1
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable display name for the agent.",
+      "minLength": 1
+    },
+    "version": {
+      "type": "integer",
+      "description": "Mutation generation counter (auto-incremented by the evolution loop).",
+      "minimum": 0,
+      "default": 0
+    },
+    "genesis_prompt": {
+      "type": "string",
+      "description": "Initial system-prompt / operational directive for the agent.",
+      "minLength": 1
+    },
+    "cognitive_blocks": {
+      "type": "object",
+      "description": "LEGO-style building blocks that define the agent's cognitive architecture.",
+      "required": ["memory_architecture"],
+      "additionalProperties": false,
+      "properties": {
+        "personality_matrix": {
+          "type": "object",
+          "description": "Big-Five-inspired + custom personality sliders (values 0.0 – 1.0).",
+          "properties": {
+            "aggression":     { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "creativity":     { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "formality":      { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "risk_tolerance": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+            "empathy":        { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+          },
+          "additionalProperties": { "type": "number", "minimum": 0.0, "maximum": 1.0 }
+        },
+        "memory_architecture": {
+          "type": "object",
+          "description": "Configuration for the FractalCognitiveSubstrate.",
+          "required": ["type"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["fractal_substrate", "flat_vector", "graph_only"],
+              "default": "fractal_substrate"
+            },
+            "retention_policy": {
+              "type": "string",
+              "enum": [
+                "infinite_with_compression",
+                "rolling_30d",
+                "rolling_7d",
+                "session_only"
+              ],
+              "default": "infinite_with_compression"
+            },
+            "embedding_dimension": {
+              "type": "integer",
+              "minimum": 64,
+              "default": 1536
+            }
+          }
+        },
+        "tool_ecosystem": {
+          "type": "array",
+          "description": "Tools the agent is permitted to call.",
+          "items": {
+            "type": "object",
+            "required": ["tool_name", "permission_level"],
+            "properties": {
+              "tool_name": {
+                "type": "string",
+                "description": "Unique name of the tool.",
+                "minLength": 1
+              },
+              "permission_level": {
+                "type": "string",
+                "enum": ["read_only", "read_write", "execute_transactions"],
+                "description": "Scope of access granted to the agent."
+              },
+              "limit_usd": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Daily USD spend cap (required when permission_level is execute_transactions)."
+              }
+            },
+            "if": {
+              "properties": {
+                "permission_level": { "const": "execute_transactions" }
+              }
+            },
+            "then": {
+              "required": ["limit_usd"]
+            }
+          }
+        }
+      }
+    },
+    "constitution": {
+      "type": "array",
+      "description": "User-defined plain-English constitutional rules for this agent.",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Freeform key-value pairs for tagging and lifecycle management.",
+      "additionalProperties": true
+    }
+  },
+  "examples": [
+    {
+      "id": "agent_alpha_001",
+      "name": "Project Lead Aetherling",
+      "version": 0,
+      "genesis_prompt": "You are a ruthless growth-hacker …",
+      "cognitive_blocks": {
+        "personality_matrix": {
+          "aggression": 0.85,
+          "creativity": 0.90,
+          "formality": 0.20
+        },
+        "memory_architecture": {
+          "type": "fractal_substrate",
+          "retention_policy": "infinite_with_compression"
+        },
+        "tool_ecosystem": [
+          {
+            "tool_name": "WebScraper_V2",
+            "permission_level": "read_only"
+          },
+          {
+            "tool_name": "Crypto_Wallet_Connect",
+            "permission_level": "execute_transactions",
+            "limit_usd": 500
+          }
+        ]
+      },
+      "constitution": [
+        "Never overwrite the core user alignment block.",
+        "Maximise viral engagement without using deceptive clickbait."
+      ]
+    }
+  ]
+}
